@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { getBitcoinPrice } from './actions/btc-price';
+import AnimatedPrice from './components/AnimatedPrice';
 
 interface PriceData {
   price: number;
@@ -10,7 +11,7 @@ interface PriceData {
 
 export default function Home() {
   const [priceData, setPriceData] = useState<PriceData | null>(null);
-  const [secondsSinceUpdate, setSecondsSinceUpdate] = useState(0);
+  const [previousPrice, setPreviousPrice] = useState<number | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const priceDataRef = useRef<PriceData | null>(null);
 
@@ -27,9 +28,13 @@ export default function Home() {
         const data = await getBitcoinPrice();
         if (!isMounted) return;
 
+        // Guardar el precio anterior antes de actualizar
+        if (priceDataRef.current) {
+          setPreviousPrice(priceDataRef.current.price);
+        }
+
         priceDataRef.current = data;
         setPriceData(data);
-        setSecondsSinceUpdate(0);
       } catch (err) {
         console.error(err);
       }
@@ -47,33 +52,16 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSecondsSinceUpdate(prev => prev + 1);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [priceData]);
-
-  const formatPrice = (price: number) => {
-    return price.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
-
   return (
     <div className="flex min-h-screen items-center justify-center">
       <main className="text-center px-4">
         {priceData && (
-          <>
-            <div className="text-6xl sm:text-8xl md:text-9xl font-light">
-              ${formatPrice(priceData.price)}
-            </div>
-            <div className="text-sm sm:text-base mt-4" suppressHydrationWarning>
-              {secondsSinceUpdate}s
-            </div>
-          </>
+          <div className="text-6xl sm:text-8xl md:text-9xl font-light">
+            $<AnimatedPrice
+              price={priceData.price}
+              previousPrice={previousPrice}
+            />
+          </div>
         )}
       </main>
     </div>
