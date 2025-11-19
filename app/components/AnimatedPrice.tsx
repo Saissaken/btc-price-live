@@ -25,36 +25,36 @@ export default function AnimatedPrice({ price, previousPrice, className = '' }: 
     };
 
     useEffect(() => {
-        // Si no hay precio anterior, solo mostrar el precio actual
+        // If no previous price, just show current price
         if (previousPrice === null) {
             setDisplayPrice(price);
             return;
         }
 
-        // Si el precio no cambió, no hacer nada
+        // If price didn't change, do nothing
         if (price === previousPrice) {
             return;
         }
 
-        // Activar el pulso del punto decimal
+        // Activate decimal point pulse
         setIsPulsing(true);
         setTimeout(() => setIsPulsing(false), 300);
 
-        // Determinar dirección del cambio
+        // Determine change direction
         const direction = price > previousPrice ? 'up' : 'down';
         setPriceDirection(direction);
 
-        // Resetear los índices cambiados para la nueva animación
+        // Reset changed indices for new animation
         setChangingIndices(new Set());
         const accumulatedChanges = new Set<number>();
 
-        // Configurar la animación
+        // Configure animation
         startPriceRef.current = previousPrice;
         startTimeRef.current = performance.now();
 
         const startFormatted = formatPrice(previousPrice);
 
-        const duration = 3000; // Duración de la animación en ms (3 segundos)
+        const duration = 3000; // Animation duration in ms (3 seconds)
 
         const animate = (currentTime: number) => {
             if (!startTimeRef.current) return;
@@ -62,15 +62,15 @@ export default function AnimatedPrice({ price, previousPrice, className = '' }: 
             const elapsed = currentTime - startTimeRef.current;
             const progress = Math.min(elapsed / duration, 1);
 
-            // Función de easing para una animación más suave
+            // Easing function for smoother animation
             const easeOutQuad = (t: number) => t * (2 - t);
             const easedProgress = easeOutQuad(progress);
 
-            // Calcular el precio animado
+            // Calculate animated price
             const priceDiff = price - startPriceRef.current;
             const animatedPrice = startPriceRef.current + (priceDiff * easedProgress);
 
-            // Verificar cambios en los dígitos
+            // Check for digit changes
             const currentFormatted = formatPrice(animatedPrice);
             let hasNewChanges = false;
             const maxLen = Math.max(startFormatted.length, currentFormatted.length);
@@ -79,7 +79,7 @@ export default function AnimatedPrice({ price, previousPrice, className = '' }: 
                 const startChar = startFormatted[i] || '';
                 const currChar = currentFormatted[i] || '';
 
-                // Solo considerar dígitos para detectar cambio
+                // Only consider digits to detect change
                 if (/\d/.test(startChar) || /\d/.test(currChar)) {
                     if (startChar !== currChar) {
                         if (!accumulatedChanges.has(i)) {
@@ -114,21 +114,21 @@ export default function AnimatedPrice({ price, previousPrice, className = '' }: 
         const formatted = formatPrice(displayPrice);
         const chars = formatted.split('');
 
-        // Encontrar la posición del punto decimal
+        // Find decimal point position
         const decimalIndex = formatted.indexOf('.');
         const isAfterDecimal = (index: number) => decimalIndex >= 0 && index > decimalIndex;
 
         return (
             <span className={`${className} tabular-nums`}>
                 {chars.map((char, index) => {
-                    // Verificar si este índice está en el set de índices que cambiaron
+                    // Check if this index is in the set of changed indices
                     let shouldColor = changingIndices.has(index);
 
-                    // Regla especial para el punto decimal:
-                    // Solo se colorea si el PRIMER dígito después del decimal cambió
+                    // Special rule for decimal point:
+                    // Only colored if the FIRST digit after decimal changed
                     if (char === '.' && decimalIndex >= 0) {
                         shouldColor = false;
-                        // El primer dígito después del decimal está en decimalIndex + 1
+                        // The first digit after decimal is at decimalIndex + 1
                         if (changingIndices.has(decimalIndex + 1)) {
                             shouldColor = true;
                         }
@@ -142,10 +142,10 @@ export default function AnimatedPrice({ price, previousPrice, className = '' }: 
                                 : ''
                         : '';
 
-                    // Hacer los decimales más pequeños
+                    // Make decimals smaller
                     const sizeClass = isAfterDecimal(index) ? 'text-[0.7em]' : '';
 
-                    // Agregar pulso al punto decimal cuando llega nuevo precio
+                    // Add pulse to decimal point when new price arrives
                     const pulseClass = (char === '.' && isPulsing) ? 'animate-ping' : '';
 
                     return (

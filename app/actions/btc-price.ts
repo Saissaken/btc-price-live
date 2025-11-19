@@ -1,12 +1,12 @@
 'use server';
 
-// Next.js cacheará automáticamente por 1 segundo usando la opción revalidate
-// Binance permite 6000 request weight/minuto, con 1 segundo de cache = 60 requests/minuto
+// Next.js will automatically cache for 1 second using the revalidate option
+// Binance allows 6000 request weight/minute, with 1 second cache = 60 requests/minute
 export async function getBitcoinPrice() {
     const response = await fetch(
         'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT',
         {
-            next: { revalidate: 1 }, // Cache por 1 segundo
+            next: { revalidate: 1 }, // Cache for 1 second
         }
     );
 

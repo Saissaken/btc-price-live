@@ -27,6 +27,18 @@ export const metadata: Metadata = {
     title: "Bitcoin Price Live",
     description: "Real-time Bitcoin price tracker.",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "BTC Live",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport = {
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({

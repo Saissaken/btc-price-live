@@ -17,8 +17,8 @@ export default function Home() {
   const [windowWidth, setWindowWidth] = useState<number>(0);
   const priceDataRef = useRef<PriceData | null>(null);
 
-  // Calcular cuántos puntos mostrar basado en el ancho de la pantalla
-  // Aproximadamente un punto cada 20px
+  // Calculate how many points to show based on screen width
+  // Approximately one point every 20px
   const maxPoints = Math.max(30, Math.floor(windowWidth / 20));
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function Home() {
         const data = await getBitcoinPrice();
         if (!isMounted) return;
 
-        // Guardar el precio anterior antes de actualizar
+        // Save previous price before updating
         if (priceDataRef.current) {
           setPreviousPrice(priceDataRef.current.price);
         }
@@ -50,13 +50,13 @@ export default function Home() {
         priceDataRef.current = data;
         setPriceData(data);
 
-        // Agregar al historial (mantener solo los últimos N puntos dinámicamente)
+        // Add to history (keep only the last N points dynamically)
         setPriceHistory(prev => {
-          // Si es el primer precio, inicializar con maxPoints copias del mismo
+          // If it's the first price, initialize with maxPoints copies of it
           if (prev.length === 0) {
             return Array(maxPoints).fill(data.price);
           }
-          // Mantener solo los últimos maxPoints precios
+          // Keep only the last maxPoints prices
           const updated = [...prev, data.price];
           return updated.slice(-maxPoints);
         });
@@ -77,7 +77,7 @@ export default function Home() {
     };
   }, [maxPoints]);
 
-  // Componente de gráfico minimalista
+  // Minimalist chart component
   const MiniChart = ({ prices }: { prices: number[] }) => {
     if (prices.length < 2) return null;
 
@@ -95,19 +95,19 @@ export default function Home() {
       return { x, y };
     });
 
-    // Función para determinar el color de cada segmento
-    // Mantiene el color previo cuando el precio no cambia
+    // Function to determine the color of each segment
+    // Keeps previous color when price doesn't change
     const getLineColor = (index: number) => {
       const current = prices[index + 1];
       const previous = prices[index];
 
       if (current > previous) {
-        return '#22c55e'; // Verde si sube
+        return '#22c55e'; // Green if up
       } else if (current < previous) {
-        return '#ef4444'; // Rojo si baja
+        return '#ef4444'; // Red if down
       }
 
-      // Si no cambia, buscar el color del segmento anterior
+      // If unchanged, find the color of the previous segment
       if (index > 0) {
         const prevCurrent = prices[index];
         const prevPrevious = prices[index - 1];
@@ -118,10 +118,10 @@ export default function Home() {
         }
       }
 
-      return '#22c55e'; // Default verde
+      return '#22c55e'; // Default green
     };
 
-    // Crear curvas suaves usando cubic bezier para transiciones más suaves
+    // Create smooth curves using cubic bezier for smoother transitions
     const createSmoothCurve = (start: { x: number; y: number }, end: { x: number; y: number }) => {
       const deltaX = end.x - start.x;
       const control1X = start.x + deltaX * 0.5;
@@ -136,7 +136,7 @@ export default function Home() {
         viewBox={`0 0 ${width} ${height}`}
         className="w-full"
       >
-        {/* Dibujar cada segmento curvo con su color */}
+        {/* Draw each curved segment with its color */}
         {points.map((point, i) => {
           if (i === points.length - 1) return null;
           const nextPoint = points[i + 1];
