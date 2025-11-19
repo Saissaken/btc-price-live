@@ -4,20 +4,20 @@
 // Binance allows 6000 request weight/minute, with 1 second cache = 60 requests/minute
 export async function getBitcoinPrice() {
     const response = await fetch(
-        'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT',
+        'https://www.bitstamp.net/api/v2/ticker/btcusd/',
         {
             next: { revalidate: 1 }, // Cache for 1 second
         }
     );
 
     if (!response.ok) {
-        throw new Error(`Binance API returned ${response.status}`);
+        throw new Error(`Bitstamp API returned ${response.status}`);
     }
 
     const data = await response.json();
 
     return {
-        price: parseFloat(data.price),
+        price: parseFloat(data.last),
         timestamp: new Date().toISOString(),
     };
 }

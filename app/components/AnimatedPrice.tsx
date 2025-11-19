@@ -12,16 +12,12 @@ export default function AnimatedPrice({ price, previousPrice, className = '' }: 
     const [displayPrice, setDisplayPrice] = useState(previousPrice ?? price);
     const [changingIndices, setChangingIndices] = useState<Set<number>>(new Set());
     const [priceDirection, setPriceDirection] = useState<'up' | 'down' | 'neutral'>('neutral');
-    const [isPulsing, setIsPulsing] = useState(false);
     const animationFrameRef = useRef<number | undefined>(undefined);
     const startTimeRef = useRef<number | undefined>(undefined);
     const startPriceRef = useRef<number>(previousPrice ?? price);
 
     const formatPrice = (price: number) => {
-        return price.toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
+        return Math.round(price).toLocaleString('en-US');
     };
 
     useEffect(() => {
@@ -35,10 +31,6 @@ export default function AnimatedPrice({ price, previousPrice, className = '' }: 
         if (price === previousPrice) {
             return;
         }
-
-        // Activate decimal point pulse
-        setIsPulsing(true);
-        setTimeout(() => setIsPulsing(false), 300);
 
         // Determine change direction
         const direction = price > previousPrice ? 'up' : 'down';
@@ -114,25 +106,10 @@ export default function AnimatedPrice({ price, previousPrice, className = '' }: 
         const formatted = formatPrice(displayPrice);
         const chars = formatted.split('');
 
-        // Find decimal point position
-        const decimalIndex = formatted.indexOf('.');
-        const isAfterDecimal = (index: number) => decimalIndex >= 0 && index > decimalIndex;
-
         return (
             <span className={`${className} tabular-nums`}>
                 {chars.map((char, index) => {
-                    // Check if this index is in the set of changed indices
-                    let shouldColor = changingIndices.has(index);
-
-                    // Special rule for decimal point:
-                    // Only colored if the FIRST digit after decimal changed
-                    if (char === '.' && decimalIndex >= 0) {
-                        shouldColor = false;
-                        // The first digit after decimal is at decimalIndex + 1
-                        if (changingIndices.has(decimalIndex + 1)) {
-                            shouldColor = true;
-                        }
-                    }
+                    const shouldColor = changingIndices.has(index);
 
                     const colorClass = shouldColor
                         ? priceDirection === 'up'
@@ -142,16 +119,10 @@ export default function AnimatedPrice({ price, previousPrice, className = '' }: 
                                 : ''
                         : '';
 
-                    // Make decimals smaller
-                    const sizeClass = isAfterDecimal(index) ? 'text-[0.7em]' : '';
-
-                    // Add pulse to decimal point when new price arrives
-                    const pulseClass = (char === '.' && isPulsing) ? 'animate-ping' : '';
-
                     return (
                         <span
                             key={index}
-                            className={`transition-colors duration-100 ${colorClass} ${sizeClass} ${pulseClass}`}
+                            className={`transition-colors duration-100 ${colorClass}`}
                         >
                             {char}
                         </span>
