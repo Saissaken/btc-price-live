@@ -44,41 +44,15 @@ export default function AnimatedPrice({ price, previousPrice, className = '' }: 
         const direction = price > previousPrice ? 'up' : 'down';
         setPriceDirection(direction);
 
-        // Identificar desde dónde empieza el cambio
-        const previousFormatted = formatPrice(previousPrice);
-        const currentFormatted = formatPrice(price);
-        const changed = new Set<number>();
-
-        // Encontrar el primer índice donde hay una diferencia en los DÍGITOS
-        let firstChangedIndex = -1;
-        const maxLen = Math.max(previousFormatted.length, currentFormatted.length);
-
-        for (let i = 0; i < maxLen; i++) {
-            const prevChar = previousFormatted[i] || '';
-            const currChar = currentFormatted[i] || '';
-
-            // Solo considerar dígitos para detectar cambio
-            if (/\d/.test(prevChar) || /\d/.test(currChar)) {
-                if (prevChar !== currChar) {
-                    firstChangedIndex = i;
-                    break;
-                }
-            }
-        }
-
-        // Si encontramos un cambio, marcar todo desde ahí hasta el final
-        if (firstChangedIndex >= 0) {
-            for (let i = firstChangedIndex; i < currentFormatted.length; i++) {
-                changed.add(i);
-            }
-        }
-
-        // Actualizar los índices que están cambiando (se mantienen coloreados permanentemente)
-        setChangingIndices(changed);
+        // Resetear los índices cambiados para la nueva animación
+        setChangingIndices(new Set());
+        const accumulatedChanges = new Set<number>();
 
         // Configurar la animación
         startPriceRef.current = previousPrice;
         startTimeRef.current = performance.now();
+
+        const startFormatted = formatPrice(previousPrice);
 
         const duration = 3000; // Duración de la animación en ms (3 segundos)
 
@@ -96,12 +70,35 @@ export default function AnimatedPrice({ price, previousPrice, className = '' }: 
             const priceDiff = price - startPriceRef.current;
             const animatedPrice = startPriceRef.current + (priceDiff * easedProgress);
 
+            // Verificar cambios en los dígitos
+            const currentFormatted = formatPrice(animatedPrice);
+            let hasNewChanges = false;
+            const maxLen = Math.max(startFormatted.length, currentFormatted.length);
+
+            for (let i = 0; i < maxLen; i++) {
+                const startChar = startFormatted[i] || '';
+                const currChar = currentFormatted[i] || '';
+
+                // Solo considerar dígitos para detectar cambio
+                if (/\d/.test(startChar) || /\d/.test(currChar)) {
+                    if (startChar !== currChar) {
+                        if (!accumulatedChanges.has(i)) {
+                            accumulatedChanges.add(i);
+                            hasNewChanges = true;
+                        }
+                    }
+                }
+            }
+
+            if (hasNewChanges) {
+                setChangingIndices(new Set(accumulatedChanges));
+            }
+
             setDisplayPrice(animatedPrice);
 
             if (progress < 1) {
                 animationFrameRef.current = requestAnimationFrame(animate);
             }
-            // NO limpiar los índices cambiados - se mantienen coloreados permanentemente
         };
 
         animationFrameRef.current = requestAnimationFrame(animate);
